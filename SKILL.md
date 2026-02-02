@@ -1,7 +1,7 @@
 ---
 name: stock-analysis
-description: Analyze stocks and cryptocurrencies using Yahoo Finance data. Supports portfolio management, watchlists with alerts, dividend analysis, and 8-dimension stock scoring. Use for stock analysis, portfolio tracking, earnings reactions, crypto monitoring, or income investing.
-version: 6.0.0
+description: Analyze stocks and cryptocurrencies using Yahoo Finance data. Supports portfolio management, watchlists with alerts, dividend analysis, 8-dimension stock scoring, and viral trend detection (Hot Scanner). Use for stock analysis, portfolio tracking, earnings reactions, crypto monitoring, or finding what's trending.
+version: 6.1.0
 homepage: https://finance.yahoo.com
 commands:
   - /stock - Analyze a stock or crypto (e.g., /stock AAPL)
@@ -9,16 +9,24 @@ commands:
   - /stock_dividend - Analyze dividend metrics
   - /stock_watch - Add/remove from watchlist
   - /stock_alerts - Check triggered alerts
+  - /stock_hot - Find trending stocks & crypto (Hot Scanner)
   - /portfolio - Show portfolio summary
   - /portfolio_add - Add asset to portfolio
 metadata: {"clawdbot":{"emoji":"📈","requires":{"bins":["uv"],"env":[]},"install":[{"id":"uv-brew","kind":"brew","formula":"uv","bins":["uv"],"label":"Install uv (brew)"}]}}
 ---
 
-# Stock Analysis v6.0
+# Stock Analysis v6.1
 
-Analyze US stocks and cryptocurrencies with 8-dimension analysis, portfolio management, watchlists, alerts, and dividend analysis.
+Analyze US stocks and cryptocurrencies with 8-dimension analysis, portfolio management, watchlists, alerts, dividend analysis, and **viral trend detection**.
 
-## What's New in v6.0
+## What's New in v6.1
+
+- 🔥 **Hot Scanner** — Find viral stocks & crypto across multiple sources
+- 🐦 **Twitter/X Integration** — Social sentiment via bird CLI
+- 📰 **Multi-Source Aggregation** — CoinGecko, Google News, Yahoo Finance
+- ⏰ **Cron Support** — Daily trend reports
+
+## What's in v6.0
 
 - 🆕 **Watchlist + Alerts** — Price targets, stop losses, signal changes
 - 🆕 **Dividend Analysis** — Yield, payout ratio, growth, safety score
@@ -104,6 +112,36 @@ uv run {baseDir}/scripts/portfolio.py show
 # Analyze with period returns
 uv run {baseDir}/scripts/analyze_stock.py --portfolio "Tech Portfolio" --period weekly
 ```
+
+### 🔥 Hot Scanner (NEW v6.1)
+```bash
+# Full scan - find what's trending NOW
+python3 {baseDir}/scripts/hot_scanner.py
+
+# Fast scan (skip social media)
+python3 {baseDir}/scripts/hot_scanner.py --no-social
+
+# JSON output for automation
+python3 {baseDir}/scripts/hot_scanner.py --json
+```
+
+**Data Sources:**
+- 📊 CoinGecko Trending — Top 15 trending coins
+- 📈 CoinGecko Movers — Biggest gainers/losers
+- 📰 Google News — Finance & crypto headlines
+- 📉 Yahoo Finance — Gainers, losers, most active
+- 🐦 Twitter/X — Social sentiment (requires auth)
+
+**Output:**
+- Top trending by mention count
+- Crypto highlights with 24h changes
+- Stock movers by category
+- Breaking news with tickers
+
+**Twitter Setup (Optional):**
+1. Install bird: `npm install -g @steipete/bird`
+2. Login to x.com in Safari/Chrome
+3. Create `.env` with `AUTH_TOKEN` and `CT0`
 
 ## Analysis Dimensions (8 for stocks, 3 for crypto)
 
