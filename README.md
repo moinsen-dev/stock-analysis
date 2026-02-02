@@ -1,9 +1,16 @@
-# 📈 Stock Analysis v6.0
+# 📈 Stock Analysis v6.1
 
-> AI-powered stock & crypto analysis with portfolio management, watchlists, and dividend analysis.
+> AI-powered stock & crypto analysis with portfolio management, watchlists, dividend analysis, and **viral trend detection**.
 
 [![ClawHub Downloads](https://img.shields.io/badge/ClawHub-1500%2B%20downloads-blue)](https://clawhub.ai)
 [![OpenClaw Skill](https://img.shields.io/badge/OpenClaw-Skill-green)](https://openclaw.ai)
+
+## What's New in v6.1
+
+- 🔥 **Hot Scanner** — Find viral stocks & crypto across multiple sources
+- 🐦 **Twitter/X Integration** — Social sentiment via bird CLI
+- 📰 **Multi-Source Aggregation** — CoinGecko, Google News, Yahoo Finance
+- ⏰ **Cron Support** — Daily trend reports
 
 ## What's New in v6.0
 
@@ -59,6 +66,18 @@ uv run scripts/portfolio.py add AAPL --quantity 100 --cost 150
 uv run scripts/portfolio.py show
 ```
 
+### 🔥 Hot Scanner (NEW)
+```bash
+# Full scan with all sources
+python3 scripts/hot_scanner.py
+
+# Fast scan (skip social media)
+python3 scripts/hot_scanner.py --no-social
+
+# JSON output for automation
+python3 scripts/hot_scanner.py --json
+```
+
 ## Analysis Dimensions
 
 ### Stocks (8 dimensions)
@@ -87,6 +106,60 @@ uv run scripts/portfolio.py show
 | Safety Score | 0-100 composite |
 | Income Rating | Excellent → Poor |
 
+## 🔥 Hot Scanner
+
+Find what's trending RIGHT NOW across stocks & crypto.
+
+### Data Sources
+
+| Source | What it finds |
+|--------|---------------|
+| **CoinGecko Trending** | Top 15 trending coins |
+| **CoinGecko Movers** | Biggest gainers/losers (>3%) |
+| **Google News** | Breaking finance & crypto news |
+| **Yahoo Finance** | Top gainers, losers, most active |
+| **Twitter/X** | Social sentiment (requires auth) |
+
+### Output
+
+```
+📊 TOP TRENDING (by buzz):
+   1. BTC      (6 pts) [CoinGecko, Google News] 📉 bearish (-2.5%)
+   2. ETH      (5 pts) [CoinGecko, Twitter] 📉 bearish (-7.2%)
+   3. NVDA     (3 pts) [Google News, Yahoo] 📰 Earnings beat...
+
+🪙 CRYPTO HIGHLIGHTS:
+   🚀 RIVER    River              +14.0%
+   📉 BTC      Bitcoin             -2.5%
+
+📈 STOCK MOVERS:
+   🟢 NVDA (gainers)
+   🔴 TSLA (losers)
+
+📰 BREAKING NEWS:
+   [BTC, ETH] Crypto crash: $2.5B liquidated...
+```
+
+### Twitter/X Setup (Optional)
+
+1. Install bird CLI: `npm install -g @steipete/bird`
+2. Login to x.com in Safari/Chrome
+3. Create `.env` file:
+```
+AUTH_TOKEN=your_auth_token
+CT0=your_ct0_token
+```
+
+Get tokens from browser DevTools → Application → Cookies → x.com
+
+### Automation
+
+Set up a daily cron job for morning reports:
+```bash
+# Run at 8 AM daily
+0 8 * * * python3 /path/to/hot_scanner.py --no-social >> /var/log/hot_scanner.log
+```
+
 ## Risk Detection
 
 - ⚠️ Pre-earnings warning (< 14 days)
@@ -106,10 +179,12 @@ uv run scripts/portfolio.py show
 
 ## Data Sources
 
-- [Yahoo Finance](https://finance.yahoo.com) — Prices, fundamentals
+- [Yahoo Finance](https://finance.yahoo.com) — Prices, fundamentals, movers
+- [CoinGecko](https://coingecko.com) — Crypto trending, market data
 - [CNN Fear & Greed](https://money.cnn.com/data/fear-and-greed/) — Sentiment
 - [SEC EDGAR](https://www.sec.gov/edgar) — Insider trading
 - [Google News RSS](https://news.google.com) — Breaking news
+- [Twitter/X](https://x.com) — Social sentiment (via bird CLI)
 
 ## Storage
 

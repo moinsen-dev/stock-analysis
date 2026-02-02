@@ -1,6 +1,6 @@
 # Documentation
 
-## Stock Analysis v6.0
+## Stock Analysis v6.1
 
 This folder contains detailed documentation for the Stock Analysis skill.
 
@@ -11,6 +11,7 @@ This folder contains detailed documentation for the Stock Analysis skill.
 | [CONCEPT.md](./CONCEPT.md) | Philosophy, ideas, and design rationale |
 | [USAGE.md](./USAGE.md) | Practical usage guide with examples |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Technical implementation details |
+| [HOT_SCANNER.md](./HOT_SCANNER.md) | 🔥 Viral trend detection (NEW) |
 
 ## Quick Links
 
