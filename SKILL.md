@@ -1,7 +1,7 @@
 ---
 name: stock-analysis
-description: Analyze stocks and cryptocurrencies using Yahoo Finance data. Supports portfolio management, watchlists with alerts, dividend analysis, 8-dimension stock scoring, and viral trend detection (Hot Scanner). Use for stock analysis, portfolio tracking, earnings reactions, crypto monitoring, or finding what's trending.
-version: 6.1.0
+description: Analyze stocks and cryptocurrencies using Yahoo Finance data. Supports portfolio management, watchlists with alerts, dividend analysis, 8-dimension stock scoring, viral trend detection (Hot Scanner), and rumor/early signal detection. Use for stock analysis, portfolio tracking, earnings reactions, crypto monitoring, trending stocks, or finding rumors before they hit mainstream.
+version: 6.2.0
 homepage: https://finance.yahoo.com
 commands:
   - /stock - Analyze a stock or crypto (e.g., /stock AAPL)
@@ -10,6 +10,7 @@ commands:
   - /stock_watch - Add/remove from watchlist
   - /stock_alerts - Check triggered alerts
   - /stock_hot - Find trending stocks & crypto (Hot Scanner)
+  - /stock_rumors - Find early signals, M&A rumors, insider activity (Rumor Scanner)
   - /portfolio - Show portfolio summary
   - /portfolio_add - Add asset to portfolio
 metadata: {"clawdbot":{"emoji":"📈","requires":{"bins":["uv"],"env":[]},"install":[{"id":"uv-brew","kind":"brew","formula":"uv","bins":["uv"],"label":"Install uv (brew)"}]}}
@@ -19,7 +20,16 @@ metadata: {"clawdbot":{"emoji":"📈","requires":{"bins":["uv"],"env":[]},"insta
 
 Analyze US stocks and cryptocurrencies with 8-dimension analysis, portfolio management, watchlists, alerts, dividend analysis, and **viral trend detection**.
 
-## What's New in v6.1
+## What's New in v6.2
+
+- 🔮 **Rumor Scanner** — Early signals before mainstream news
+  - M&A rumors and takeover bids
+  - Insider buying/selling activity
+  - Analyst upgrades/downgrades
+  - Twitter/X "hearing that...", "sources say..." detection
+- 🎯 **Impact Scoring** — Rumors ranked by potential market impact
+
+## What's in v6.1
 
 - 🔥 **Hot Scanner** — Find viral stocks & crypto across multiple sources
 - 🐦 **Twitter/X Integration** — Social sentiment via bird CLI
@@ -142,6 +152,29 @@ python3 {baseDir}/scripts/hot_scanner.py --json
 1. Install bird: `npm install -g @steipete/bird`
 2. Login to x.com in Safari/Chrome
 3. Create `.env` with `AUTH_TOKEN` and `CT0`
+
+### 🔮 Rumor Scanner (NEW v6.2)
+```bash
+# Find early signals, M&A rumors, insider activity
+python3 {baseDir}/scripts/rumor_scanner.py
+```
+
+**What it finds:**
+- 🏢 **M&A Rumors** — Merger, acquisition, takeover bids
+- 👔 **Insider Activity** — CEO/Director buying/selling
+- 📊 **Analyst Actions** — Upgrades, downgrades, price target changes
+- 🐦 **Twitter Whispers** — "hearing that...", "sources say...", "rumor"
+- ⚖️ **SEC Activity** — Investigations, filings
+
+**Impact Scoring:**
+- Each rumor is scored by potential market impact (1-10)
+- M&A/Takeover: +5 points
+- Insider buying: +4 points
+- Upgrade/Downgrade: +3 points
+- "Hearing"/"Sources say": +2 points
+- High engagement: +2 bonus
+
+**Best Practice:** Run at 07:00 before US market open to catch pre-market signals.
 
 ## Analysis Dimensions (8 for stocks, 3 for crypto)
 
