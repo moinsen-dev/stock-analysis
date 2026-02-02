@@ -1,197 +1,177 @@
 ---
 name: stock-analysis
-description: Analyze stocks and cryptocurrencies using Yahoo Finance data. Supports portfolio management (create, add, remove assets), crypto analysis (Top 20 by market cap), and periodic performance reports (daily/weekly/monthly/quarterly/yearly). 8 analysis dimensions for stocks, 3 for crypto. Use for stock analysis, portfolio tracking, earnings reactions, or crypto monitoring.
+description: Analyze stocks and cryptocurrencies using Yahoo Finance data. Supports portfolio management, watchlists with alerts, dividend analysis, and 8-dimension stock scoring. Use for stock analysis, portfolio tracking, earnings reactions, crypto monitoring, or income investing.
+version: 6.0.0
 homepage: https://finance.yahoo.com
+commands:
+  - /stock - Analyze a stock or crypto (e.g., /stock AAPL)
+  - /stock_compare - Compare multiple tickers
+  - /stock_dividend - Analyze dividend metrics
+  - /stock_watch - Add/remove from watchlist
+  - /stock_alerts - Check triggered alerts
+  - /portfolio - Show portfolio summary
+  - /portfolio_add - Add asset to portfolio
 metadata: {"clawdbot":{"emoji":"📈","requires":{"bins":["uv"],"env":[]},"install":[{"id":"uv-brew","kind":"brew","formula":"uv","bins":["uv"],"label":"Install uv (brew)"}]}}
 ---
 
-# Stock Analysis (v5.0)
+# Stock Analysis v6.0
 
-Analyze US stocks and cryptocurrencies using Yahoo Finance data. Includes portfolio management, crypto support, and periodic analysis.
+Analyze US stocks and cryptocurrencies with 8-dimension analysis, portfolio management, watchlists, alerts, and dividend analysis.
 
-## Quick Start
+## What's New in v6.0
 
-**IMPORTANT:** Pass ONLY the stock ticker symbol(s) as arguments. Do NOT add extra text, headers, or formatting in the command.
+- 🆕 **Watchlist + Alerts** — Price targets, stop losses, signal changes
+- 🆕 **Dividend Analysis** — Yield, payout ratio, growth, safety score
+- 🆕 **Fast Mode** — `--fast` skips slow analyses (insider, news)
+- 🆕 **Improved Performance** — `--no-insider` for faster runs
 
-Analyze a single ticker:
+## Quick Commands
 
+### Stock Analysis
 ```bash
+# Basic analysis
 uv run {baseDir}/scripts/analyze_stock.py AAPL
-uv run {baseDir}/scripts/analyze_stock.py MSFT --output json
-```
 
-Compare multiple tickers:
+# Fast mode (skips insider trading & breaking news)
+uv run {baseDir}/scripts/analyze_stock.py AAPL --fast
 
-```bash
+# Compare multiple
 uv run {baseDir}/scripts/analyze_stock.py AAPL MSFT GOOGL
+
+# Crypto
+uv run {baseDir}/scripts/analyze_stock.py BTC-USD ETH-USD
 ```
 
-## Cryptocurrency Analysis (v5.0)
-
-Analyze top 20 cryptocurrencies by market cap:
-
+### Dividend Analysis (NEW v6.0)
 ```bash
-uv run {baseDir}/scripts/analyze_stock.py BTC-USD
-uv run {baseDir}/scripts/analyze_stock.py ETH-USD SOL-USD
+# Analyze dividends
+uv run {baseDir}/scripts/dividends.py JNJ
+
+# Compare dividend stocks
+uv run {baseDir}/scripts/dividends.py JNJ PG KO MCD --output json
 ```
 
-**Supported Cryptos:**
-BTC-USD, ETH-USD, BNB-USD, SOL-USD, XRP-USD, ADA-USD, DOGE-USD, AVAX-USD, DOT-USD, MATIC-USD, LINK-USD, ATOM-USD, UNI-USD, LTC-USD, BCH-USD, XLM-USD, ALGO-USD, VET-USD, FIL-USD, NEAR-USD
+**Dividend Metrics:**
+- Dividend Yield & Annual Payout
+- Payout Ratio (safe/moderate/high/unsustainable)
+- 5-Year Dividend Growth (CAGR)
+- Consecutive Years of Increases
+- Safety Score (0-100)
+- Income Rating (excellent/good/moderate/poor)
 
-**Crypto Analysis Dimensions:**
-- Market cap (large/mid/small classification)
-- Category (Smart Contract L1, DeFi, Payment, etc.)
-- BTC correlation (30-day)
-- Momentum (RSI, price range)
-- Market context (VIX, general market regime)
+### Watchlist + Alerts (NEW v6.0)
+```bash
+# Add to watchlist
+uv run {baseDir}/scripts/watchlist.py add AAPL
 
-## Portfolio Management (v5.0)
+# With price target alert
+uv run {baseDir}/scripts/watchlist.py add AAPL --target 200
 
-Create and manage portfolios with mixed assets (stocks + crypto):
+# With stop loss alert
+uv run {baseDir}/scripts/watchlist.py add AAPL --stop 150
 
+# Alert on signal change (BUY→SELL)
+uv run {baseDir}/scripts/watchlist.py add AAPL --alert-on signal
+
+# View watchlist
+uv run {baseDir}/scripts/watchlist.py list
+
+# Check for triggered alerts
+uv run {baseDir}/scripts/watchlist.py check
+uv run {baseDir}/scripts/watchlist.py check --notify  # Telegram format
+
+# Remove from watchlist
+uv run {baseDir}/scripts/watchlist.py remove AAPL
+```
+
+**Alert Types:**
+- 🎯 **Target Hit** — Price >= target
+- 🛑 **Stop Hit** — Price <= stop
+- 📊 **Signal Change** — BUY/HOLD/SELL changed
+
+### Portfolio Management
 ```bash
 # Create portfolio
-uv run {baseDir}/scripts/portfolio.py create "My Portfolio"
+uv run {baseDir}/scripts/portfolio.py create "Tech Portfolio"
 
 # Add assets
-uv run {baseDir}/scripts/portfolio.py add AAPL --quantity 100 --cost 150.00
-uv run {baseDir}/scripts/portfolio.py add BTC-USD --quantity 0.5 --cost 40000 --portfolio "My Portfolio"
+uv run {baseDir}/scripts/portfolio.py add AAPL --quantity 100 --cost 150
+uv run {baseDir}/scripts/portfolio.py add BTC-USD --quantity 0.5 --cost 40000
 
-# View holdings with current P&L
+# View portfolio
 uv run {baseDir}/scripts/portfolio.py show
 
-# Update/remove assets
-uv run {baseDir}/scripts/portfolio.py update AAPL --quantity 150
-uv run {baseDir}/scripts/portfolio.py remove BTC-USD
-
-# List/delete portfolios
-uv run {baseDir}/scripts/portfolio.py list
-uv run {baseDir}/scripts/portfolio.py delete "My Portfolio"
+# Analyze with period returns
+uv run {baseDir}/scripts/analyze_stock.py --portfolio "Tech Portfolio" --period weekly
 ```
 
-**Portfolio Storage:** `~/.clawdbot/skills/stock-analysis/portfolios.json`
+## Analysis Dimensions (8 for stocks, 3 for crypto)
 
-## Portfolio Analysis (v5.0)
+### Stocks
+| Dimension | Weight | Description |
+|-----------|--------|-------------|
+| Earnings Surprise | 30% | EPS beat/miss |
+| Fundamentals | 20% | P/E, margins, growth |
+| Analyst Sentiment | 20% | Ratings, price targets |
+| Historical | 10% | Past earnings reactions |
+| Market Context | 10% | VIX, SPY/QQQ trends |
+| Sector | 15% | Relative strength |
+| Momentum | 15% | RSI, 52-week range |
+| Sentiment | 10% | Fear/Greed, shorts, insiders |
 
-Analyze all assets in a portfolio with optional period returns:
+### Crypto
+- Market Cap & Category
+- BTC Correlation (30-day)
+- Momentum (RSI, range)
 
-```bash
-# Analyze portfolio
-uv run {baseDir}/scripts/analyze_stock.py --portfolio "My Portfolio"
+## Sentiment Sub-Indicators
 
-# With period returns (daily/weekly/monthly/quarterly/yearly)
-uv run {baseDir}/scripts/analyze_stock.py --portfolio "My Portfolio" --period weekly
-uv run {baseDir}/scripts/analyze_stock.py -p "My Portfolio" --period monthly
-```
+| Indicator | Source | Signal |
+|-----------|--------|--------|
+| Fear & Greed | CNN | Contrarian (fear=buy) |
+| Short Interest | Yahoo | Squeeze potential |
+| VIX Structure | Futures | Stress detection |
+| Insider Trades | SEC EDGAR | Smart money |
+| Put/Call Ratio | Options | Sentiment extreme |
 
-**Portfolio Summary includes:**
-- Total cost, current value, P&L
-- Period return (if specified)
-- Concentration warnings (>30% in single asset)
-- Recommendation summary (BUY/HOLD/SELL counts)
+## Risk Detection
 
-**Examples:**
-- ✅ CORRECT: `uv run {baseDir}/scripts/analyze_stock.py BAC`
-- ✅ CORRECT: `uv run {baseDir}/scripts/analyze_stock.py BTC-USD`
-- ❌ WRONG: `uv run {baseDir}/scripts/analyze_stock.py === BANK OF AMERICA (BAC) - Q4 2025 EARNINGS ===`
-- ❌ WRONG: `uv run {baseDir}/scripts/analyze_stock.py "Bank of America"`
+- ⚠️ **Pre-Earnings** — Warns if < 14 days to earnings
+- ⚠️ **Post-Spike** — Flags if up >15% in 5 days
+- ⚠️ **Overbought** — RSI >70 + near 52w high
+- ⚠️ **Risk-Off** — GLD/TLT/UUP rising together
+- ⚠️ **Geopolitical** — Taiwan, China, Russia, Middle East keywords
+- ⚠️ **Breaking News** — Crisis keywords in last 24h
 
-Use the ticker symbol only (e.g., BAC, not "Bank of America"). For crypto, use the -USD suffix (e.g., BTC-USD).
+## Performance Options
 
-## Analysis Components
+| Flag | Effect | Speed |
+|------|--------|-------|
+| (default) | Full analysis | 5-10s |
+| `--no-insider` | Skip SEC EDGAR | 3-5s |
+| `--fast` | Skip insider + news | 2-3s |
 
-The script evaluates eight key dimensions:
+## Supported Cryptos (Top 20)
 
-1. **Earnings Surprise (30% weight)**: Actual vs expected EPS, revenue beats/misses
-2. **Fundamentals (20% weight)**: P/E ratio, profit margins, revenue growth, debt levels
-3. **Analyst Sentiment (20% weight)**: Consensus ratings, price target vs current price
-4. **Historical Patterns (10% weight)**: Past earnings reactions, volatility
-5. **Market Context (10% weight)**: VIX, SPY/QQQ trends, market regime
-6. **Sector Performance (15% weight)**: Stock vs sector comparison, sector trends
-7. **Momentum (15% weight)**: RSI, 52-week range, volume, relative strength
-8. **Sentiment Analysis (10% weight)**: Fear/Greed Index, short interest, VIX term structure, insider trading, put/call ratio
+BTC, ETH, BNB, SOL, XRP, ADA, DOGE, AVAX, DOT, MATIC, LINK, ATOM, UNI, LTC, BCH, XLM, ALGO, VET, FIL, NEAR
 
-**Sentiment Sub-Indicators:**
-- **Fear & Greed Index (CNN)**: Contrarian signal (extreme fear = buy opportunity, extreme greed = caution)
-- **Short Interest**: High shorts + squeeze potential = bullish; justified shorts = bearish
-- **VIX Term Structure**: Contango = complacency/bullish; backwardation = stress/bearish
-- **Insider Activity**: Net buying/selling from SEC Form 4 filings (90-day window)
-- **Put/Call Ratio**: High ratio = excessive fear/bullish; low ratio = complacency/bearish
+(Use `-USD` suffix: `BTC-USD`, `ETH-USD`)
 
-Weights auto-normalize if some components unavailable.
+## Data Storage
 
-**Special Timing Checks:**
-- Pre-earnings warning (< 14 days): Recommends HOLD instead of BUY
-- Post-earnings spike detection (> 15% in 5 days): Flags "gains priced in"
-- Overbought conditions (RSI > 70 + near 52w high): Reduces confidence
-
-## Timing Warnings & Risk Flags
-
-The script detects high-risk scenarios:
-
-### Earnings Timing
-- **Pre-Earnings Period**: If earnings < 14 days away, BUY signals become HOLD
-- **Post-Earnings Spike**: If stock up > 15% in 5 days after earnings, warns "gains may be priced in"
-
-### Technical Risk
-- **Overbought Conditions**: RSI > 70 + near 52-week high = high-risk entry
-
-### Market Risk
-- **High VIX**: Market fear (VIX > 30) reduces confidence in BUY signals
-- **Risk-Off Mode (v4.0.0)**: When safe-havens (GLD, TLT, UUP) rise together, reduces BUY confidence by 30%
-  - Detects flight to safety across gold, treasuries, and USD
-  - Triggers when GLD ≥ +2%, TLT ≥ +1%, UUP ≥ +1% (5-day change)
-
-### Sector Risk
-- **Sector Weakness**: Stock may look good but sector is rotating out
-
-### Geopolitical Risk (v4.0.0)
-The script now scans breaking news (last 24h) for crisis keywords and automatically flags affected stocks:
-
-- **Taiwan Conflict**: Semiconductors (NVDA, AMD, TSM, INTC, etc.) → 30% confidence penalty
-- **China Tensions**: Tech/Consumer (AAPL, QCOM, NKE, SBUX, etc.) → 30% confidence penalty
-- **Russia-Ukraine**: Energy/Materials (XOM, CVX, MOS, CF, etc.) → 30% confidence penalty
-- **Middle East**: Oil/Defense (XOM, LMT, RTX, etc.) → 30% confidence penalty
-- **Banking Crisis**: Financials (JPM, BAC, WFC, C, etc.) → 30% confidence penalty
-
-If a ticker is not in the affected list but its sector is exposed, applies a 15% confidence penalty.
-
-**Example Alert:**
-```
-⚠️ SECTOR RISK: Tech supply chain and consumer market exposure (detected: china, tariff)
-```
-
-### Breaking News Alerts (v4.0.0)
-- Scans Google News RSS for crisis keywords (war, recession, sanctions, disasters, etc.)
-- Displays up to 2 breaking news alerts in caveats (last 24 hours)
-- Uses 1-hour cache to avoid excessive API calls
-
-## Output Format
-
-**Default (text)**: Concise buy/hold/sell signal with 3-5 bullet points and caveats
-
-**JSON**: Structured data with scores, metrics, and raw data for further analysis
+| File | Location |
+|------|----------|
+| Portfolios | `~/.clawdbot/skills/stock-analysis/portfolios.json` |
+| Watchlist | `~/.clawdbot/skills/stock-analysis/watchlist.json` |
 
 ## Limitations
 
-- **Data freshness**: Yahoo Finance may lag 15-20 minutes
-- **Sentiment data staleness**:
-  - Short interest data lags ~2 weeks (FINRA reporting schedule)
-  - Insider trades may lag filing by 2-3 days
-  - VIX term structure only updates during futures trading hours
-- **Breaking news limitations (v4.0.0)**:
-  - Google News RSS may lag by 15-60 minutes
-  - Keyword matching may have false positives/negatives
-  - Does not analyze sentiment, only detects keywords
-  - 1-hour cache means alerts may be slightly stale
-- **Missing data**: Not all stocks have analyst coverage, options chains, or complete fundamentals
-- **Execution time**: 3-5s per stock with async parallel fetching and caching (shared indicators cached for 1h)
-- **Disclaimer**: All outputs include prominent "not financial advice" warning
-- **US markets only**: Non-US tickers may have incomplete data
+- Yahoo Finance may lag 15-20 minutes
+- Short interest lags ~2 weeks (FINRA)
+- Insider trades lag 2-3 days (SEC filing)
+- US markets only (non-US incomplete)
+- Breaking news: 1h cache, keyword-based
 
-## Error Handling
+## Disclaimer
 
-The script gracefully handles:
-- Invalid tickers → Clear error message
-- Missing analyst data → Signal based on available metrics only
-- API failures → Retry with exponential backoff, fail after 3 attempts
+⚠️ **NOT FINANCIAL ADVICE.** For informational purposes only. Consult a licensed financial advisor before making investment decisions.

@@ -1612,7 +1612,7 @@ async def get_put_call_ratio(data: StockData) -> tuple[float, float | None, int 
         return None
 
 
-async def analyze_sentiment(data: StockData, verbose: bool = False) -> SentimentAnalysis | None:
+async def analyze_sentiment(data: StockData, verbose: bool = False, skip_insider: bool = False) -> SentimentAnalysis | None:
     """
     Analyze market sentiment using 5 sub-indicators in parallel.
     Requires at least 2 of 5 indicators for valid sentiment.
@@ -1645,15 +1645,24 @@ async def analyze_sentiment(data: StockData, verbose: bool = False) -> Sentiment
     call_volume = None
 
     # Fetch all 5 indicators in parallel with 10s timeout per indicator
+    # (or 4 if skip_insider=True for faster analysis)
     try:
-        results = await asyncio.gather(
+        tasks = [
             asyncio.wait_for(get_fear_greed_index(), timeout=10),
             asyncio.wait_for(get_short_interest(data), timeout=10),
             asyncio.wait_for(get_vix_term_structure(), timeout=10),
-            asyncio.wait_for(get_insider_activity(data.ticker, period_days=90), timeout=10),
-            asyncio.wait_for(get_put_call_ratio(data), timeout=10),
-            return_exceptions=True  # Don't fail if one indicator fails
-        )
+        ]
+        
+        if skip_insider:
+            tasks.append(asyncio.sleep(0))  # Placeholder - returns None
+            if verbose:
+                print("    Skipping insider trading analysis (--no-insider)", file=sys.stderr)
+        else:
+            tasks.append(asyncio.wait_for(get_insider_activity(data.ticker, period_days=90), timeout=10))
+        
+        tasks.append(asyncio.wait_for(get_put_call_ratio(data), timeout=10))
+        
+        results = await asyncio.gather(*tasks, return_exceptions=True)
 
         # Process Fear & Greed Index
         fear_greed_result = results[0]
@@ -2134,8 +2143,22 @@ def main():
         choices=["daily", "weekly", "monthly", "quarterly", "yearly"],
         help="Period for portfolio performance analysis"
     )
+    parser.add_argument(
+        "--no-insider",
+        action="store_true",
+        help="Skip insider trading analysis (faster, SEC EDGAR is slow)"
+    )
+    parser.add_argument(
+        "--fast",
+        action="store_true",
+        help="Fast mode: skip slow analyses (insider, breaking news)"
+    )
 
     args = parser.parse_args()
+    
+    # Fast mode shortcuts
+    if args.fast:
+        args.no_insider = True
 
     # Handle portfolio mode
     portfolio_assets = []
@@ -2179,9 +2202,14 @@ def main():
         sys.exit(1)
 
     # NEW v4.0.0: Check for breaking news (market-wide, check once before analyzing tickers)
-    if args.verbose:
-        print(f"Checking breaking news (last 24h)...", file=sys.stderr)
-    breaking_news = check_breaking_news(verbose=args.verbose)
+    # Check breaking news (skip in fast mode)
+    breaking_news = None
+    if not args.fast:
+        if args.verbose:
+            print(f"Checking breaking news (last 24h)...", file=sys.stderr)
+        breaking_news = check_breaking_news(verbose=args.verbose)
+    elif args.verbose:
+        print(f"Skipping breaking news check (--fast mode)", file=sys.stderr)
     if breaking_news and args.verbose:
         print(f"  Found {len(breaking_news)} breaking news alert(s)\n", file=sys.stderr)
 
@@ -2270,7 +2298,7 @@ def main():
             # Skip insider trading and put/call for crypto
             sentiment = None
         else:
-            sentiment = asyncio.run(analyze_sentiment(data, verbose=args.verbose))
+            sentiment = asyncio.run(analyze_sentiment(data, verbose=args.verbose, skip_insider=args.no_insider))
 
         # Geopolitical risks (stocks only)
         if is_crypto:
