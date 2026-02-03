@@ -22,6 +22,14 @@ from urllib.request import urlopen, Request
 from urllib.parse import quote_plus
 import gzip
 
+import sys as _sys
+_sys.path.insert(0, str(Path.home() / "clawd" / "lib"))
+try:
+    from claude_auth import claude_ask
+    CLAUDE_AVAILABLE = True
+except ImportError:
+    CLAUDE_AVAILABLE = False
+
 CACHE_DIR = Path(__file__).parent.parent / "cache"
 CACHE_DIR.mkdir(exist_ok=True)
 
@@ -244,6 +252,24 @@ def calculate_rumor_score(item):
     
     return score
 
+def evaluate_rumors_with_claude(rumors):
+    """Use Claude to evaluate and rank the top rumors."""
+    if not CLAUDE_AVAILABLE or not rumors:
+        return None
+    
+    top_rumors = rumors[:10]
+    rumors_text = "\n".join(
+        f"- [{r.get('source')}] Score {r.get('score',0)}: {r.get('text', r.get('title', ''))[:150]}"
+        for r in top_rumors
+    )
+    
+    analysis = claude_ask(
+        f"Analyze these market rumors. For each, rate credibility (1-10), potential market impact, and recommended action (watch/research/ignore):\n\n{rumors_text}",
+        system="You are a senior financial analyst specializing in market rumors and early signals. Be concise - max 2 lines per rumor. End with a 1-sentence overall market sentiment.",
+        max_tokens=800
+    )
+    return analysis
+
 def main():
     print("=" * 60)
     print("🔮 RUMOR & BUZZ SCANNER")
@@ -281,6 +307,14 @@ def main():
     
     all_rumors.sort(key=lambda x: x['score'], reverse=True)
     
+    # Claude AI Evaluation
+    claude_analysis = None
+    if CLAUDE_AVAILABLE and all_rumors:
+        print("  🧠 Claude AI evaluating rumors...")
+        claude_analysis = evaluate_rumors_with_claude(all_rumors)
+        if claude_analysis:
+            print("    ✅ AI analysis complete")
+    
     # Count symbol mentions in buzz
     symbol_counts = {}
     for item in all_buzz:
@@ -305,6 +339,13 @@ def main():
             print(f"   [{item['score']}] [{source}] {symbols}")
             print(f"       {text}...")
             print()
+    
+    # AI Analysis
+    if claude_analysis:
+        print("🧠 AI RUMOR ANALYSIS:")
+        print()
+        print(claude_analysis)
+        print()
     
     # Buzz Leaderboard
     print("📊 BUZZ LEADERBOARD (most discussed):")
@@ -332,6 +373,7 @@ def main():
         'rumors': all_rumors[:20],
         'buzz': all_buzz[:30],
         'symbol_counts': symbol_counts,
+        'claude_analysis': claude_analysis,
     }
     
     output_file = CACHE_DIR / 'rumor_scan_latest.json'
